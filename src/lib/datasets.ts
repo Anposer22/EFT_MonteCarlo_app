@@ -34,13 +34,13 @@ export async function loadHistoricalDataset(): Promise<HistoricalDataset> {
   const response = await fetch(`${import.meta.env.BASE_URL}data/sp500-shiller.csv`)
 
   if (!response.ok) {
-    throw new Error('Unable to load the historical dataset.')
+    throw new Error('No se ha podido cargar el conjunto historico.')
   }
 
   const rows = parseCsv(await response.text())
 
   if (rows.length < 2) {
-    throw new Error('The historical dataset is too short to simulate from.')
+    throw new Error('El conjunto historico es demasiado corto para simular.')
   }
 
   const monthlyReturns: number[] = []
@@ -58,11 +58,11 @@ export async function loadHistoricalDataset(): Promise<HistoricalDataset> {
 
   return {
     id: 'sp500-shiller',
-    name: 'S&P 500 Historical Return Model',
+    name: 'Modelo historico de rentabilidad del S&P 500',
     symbol: 'S&P 500',
     description:
-      'Monthly return distribution derived from the Shiller-style S&P 500 series, using price change plus a simple monthly dividend proxy.',
-    sourceLabel: 'Shiller S&P 500 dataset mirror (GitHub datasets/s-and-p-500)',
+      'Distribucion mensual de rendimientos derivada de la serie del S&P 500 tipo Shiller, usando variacion del precio mas una aproximacion simple del dividendo mensual.',
+    sourceLabel: 'Replica del dataset Shiller del S&P 500 (GitHub datasets/s-and-p-500)',
     sourceUrl: 'https://github.com/datasets/s-and-p-500',
     dateRange: {
       start: monthlyReturnDates[0],
@@ -72,9 +72,9 @@ export async function loadHistoricalDataset(): Promise<HistoricalDataset> {
     monthlyReturnDates,
     distributionStats: computeDistributionStats(monthlyReturns),
     notes: [
-      'The engine samples historical monthly returns with replacement.',
-      'Dividends are approximated as one twelfth of the annual dividend value in each month.',
-      'The committed dataset is fixed for reproducibility and GitHub Pages hosting.',
+      'El motor toma muestras de rendimientos mensuales historicos con reemplazo.',
+      'Los dividendos se aproximan como una doceava parte del dividendo anual en cada mes.',
+      'El dataset incluido queda fijado para mantener reproducibilidad y despliegue estatico en GitHub Pages.',
     ],
   }
 }

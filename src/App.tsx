@@ -24,6 +24,7 @@ const DEFAULT_INPUTS = {
   simulationCount: 20_000,
   targetAmount: 500_000,
   profitGoal: 250_000,
+  visiblePathCount: 6,
 }
 
 function App() {
@@ -42,7 +43,9 @@ function App() {
         setDataset(loadedDataset)
       })
       .catch((error) => {
-        setDatasetError(error instanceof Error ? error.message : 'Failed to load the dataset.')
+        setDatasetError(
+          error instanceof Error ? error.message : 'No se ha podido cargar el dataset.',
+        )
       })
   }, [])
 
@@ -76,13 +79,13 @@ function App() {
   }, [])
 
   const historicalHistogram = useMemo(
-    () => buildHistogram(dataset?.monthlyReturns ?? [], 22),
+    () => buildHistogram(dataset?.monthlyReturns ?? [], 36),
     [dataset],
   )
 
   const resultHistogram = useMemo(
     () =>
-      simulationResult ? buildHistogram(Array.from(simulationResult.finalValues), 24) : [],
+      simulationResult ? buildHistogram(Array.from(simulationResult.finalValues), 32) : [],
     [simulationResult],
   )
 
@@ -113,7 +116,7 @@ function App() {
       monthlyReturns: dataset.monthlyReturns,
       targetAmount: inputs.targetAmount > 0 ? inputs.targetAmount : null,
       profitGoal: inputs.profitGoal > 0 ? inputs.profitGoal : null,
-      samplePathCount: 24,
+      samplePathCount: Math.min(24, Math.max(1, Math.round(inputs.visiblePathCount))),
       seed: 20260317,
     }
 
@@ -125,54 +128,54 @@ function App() {
       <main className="page">
         <section className="hero-panel">
           <article className="hero-copy">
-            <div className="eyebrow">ETF Monte Carlo Planner</div>
+            <div className="eyebrow">Planificador Monte Carlo para ETF</div>
             <h1 className="hero-title">
-              Explore the range of outcomes for a <span>S&amp;P 500 strategy</span>.
+              Explora el rango de resultados de una <span>estrategia sobre el S&amp;P 500</span>.
             </h1>
             <p>
-              This browser-only app uses a fixed historical monthly return model and runs
-              Monte Carlo simulations in a Web Worker, so you can test long-term investing
-              scenarios without a backend.
+              Esta app funciona totalmente en el navegador, usa un modelo historico mensual fijo
+              y ejecuta las simulaciones Monte Carlo en un Web Worker para mantener la interfaz
+              fluida incluso con miles de escenarios.
             </p>
             <div className="hero-stats">
               <div className="hero-stat">
-                <span>Dataset window</span>
+                <span>Ventana historica</span>
                 <strong>
                   {dataset
-                    ? `${dataset.dateRange.start} to ${dataset.dateRange.end}`
-                    : 'Loading...'}
+                    ? `${dataset.dateRange.start} a ${dataset.dateRange.end}`
+                    : 'Cargando...'}
                 </strong>
               </div>
               <div className="hero-stat">
-                <span>Simulation cap</span>
-                <strong>50,000 runs</strong>
+                <span>Limite de simulaciones</span>
+                <strong>50.000 ejecuciones</strong>
               </div>
               <div className="hero-stat">
-                <span>Model cadence</span>
-                <strong>Monthly returns</strong>
+                <span>Frecuencia del modelo</span>
+                <strong>Rendimientos mensuales</strong>
               </div>
             </div>
           </article>
 
           <aside className="hero-side">
-            <h2>How the model works</h2>
+            <h2>Como funciona el modelo</h2>
             <p>
-              Each simulation samples from the committed historical monthly return
-              distribution, adds your monthly contribution, compounds the balance, and stores
-              only the values needed for reporting so large runs stay efficient.
+              Cada simulacion toma meses historicos al azar, suma tu aportacion mensual y
+              capitaliza la cartera. Solo se guardan los resultados que de verdad necesitamos
+              para el informe, de modo que el rendimiento sigue siendo bueno con cargas altas.
             </p>
             <div className="notes-list">
               <div className="note-card">
-                <div className="table-muted">Engine</div>
-                <strong>Typed arrays + worker thread</strong>
+                <div className="table-muted">Motor</div>
+                <strong>Typed arrays + Web Worker</strong>
               </div>
               <div className="note-card">
-                <div className="table-muted">Report</div>
-                <strong>Percentiles, targets, confidence floors</strong>
+                <div className="table-muted">Analisis</div>
+                <strong>Percentiles, objetivos y suelos de confianza</strong>
               </div>
               <div className="note-card">
                 <div className="table-muted">Hosting</div>
-                <strong>Static GitHub Pages</strong>
+                <strong>GitHub Pages estatico</strong>
               </div>
             </div>
           </aside>
@@ -181,14 +184,14 @@ function App() {
         <section className="section-block">
           <div className="section-header">
             <div>
-              <h2>Inputs</h2>
-              <p>Set the starting amount, monthly contribution, horizon, and simulation scale.</p>
+              <h2>Entradas</h2>
+              <p>Define el capital inicial, la aportacion mensual, el plazo y el tamano de la simulacion.</p>
             </div>
           </div>
 
           <div className="inputs-grid">
             <div className="input-card">
-              <label htmlFor="initialAmount">Initial amount (USD)</label>
+              <label htmlFor="initialAmount">Capital inicial (€)</label>
               <input
                 id="initialAmount"
                 type="number"
@@ -198,7 +201,7 @@ function App() {
               />
             </div>
             <div className="input-card">
-              <label htmlFor="monthlyContribution">Monthly contribution (USD)</label>
+              <label htmlFor="monthlyContribution">Aportacion mensual (€)</label>
               <input
                 id="monthlyContribution"
                 type="number"
@@ -210,7 +213,7 @@ function App() {
               />
             </div>
             <div className="input-card">
-              <label htmlFor="years">Investment horizon (years)</label>
+              <label htmlFor="years">Horizonte de inversion (anos)</label>
               <input
                 id="years"
                 type="number"
@@ -221,7 +224,7 @@ function App() {
               />
             </div>
             <div className="input-card">
-              <label htmlFor="simulationCount">Monte Carlo runs</label>
+              <label htmlFor="simulationCount">Numero de simulaciones</label>
               <input
                 id="simulationCount"
                 type="number"
@@ -235,7 +238,7 @@ function App() {
               />
             </div>
             <div className="input-card">
-              <label htmlFor="targetAmount">Target final amount (optional)</label>
+              <label htmlFor="targetAmount">Objetivo final opcional (€)</label>
               <input
                 id="targetAmount"
                 type="number"
@@ -245,13 +248,26 @@ function App() {
               />
             </div>
             <div className="input-card">
-              <label htmlFor="profitGoal">Profit goal above contributions (optional)</label>
+              <label htmlFor="profitGoal">Beneficio objetivo opcional (€)</label>
               <input
                 id="profitGoal"
                 type="number"
                 min="0"
                 value={inputs.profitGoal}
                 onChange={(event) => updateInput('profitGoal', Number(event.target.value))}
+              />
+            </div>
+            <div className="input-card">
+              <label htmlFor="visiblePathCount">Trayectorias a visualizar</label>
+              <input
+                id="visiblePathCount"
+                type="number"
+                min="1"
+                max="24"
+                value={inputs.visiblePathCount}
+                onChange={(event) =>
+                  updateInput('visiblePathCount', Number(event.target.value))
+                }
               />
             </div>
           </div>
@@ -263,24 +279,24 @@ function App() {
               disabled={isRunning || !dataset}
               onClick={runSimulation}
             >
-              {isRunning ? 'Running simulations...' : 'Run simulation'}
+              {isRunning ? 'Ejecutando simulaciones...' : 'Ejecutar simulacion'}
             </button>
             <div className="range-hint">
-              Efficient for up to {formatCount(50_000)} simulations in-browser.
+              Preparado para hasta {formatCount(50_000)} simulaciones en el navegador.
             </div>
           </div>
 
           {isRunning ? (
             <div className="loading-card section-block">
-              <h3>Simulation progress</h3>
+              <h3>Progreso de la simulacion</h3>
               <p className="note-text">
-                The Monte Carlo engine is running in a Web Worker so the page stays responsive.
+                El motor Monte Carlo esta corriendo en un Web Worker para que la pagina siga respondiendo.
               </p>
               <div className="progress" style={{ marginTop: '16px' }}>
                 <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
               </div>
               <p className="table-muted" style={{ marginTop: '10px' }}>
-                {formatPercent(progress)} complete
+                {formatPercent(progress)} completado
               </p>
             </div>
           ) : null}
@@ -290,15 +306,14 @@ function App() {
         <section className="section-block">
           <div className="section-header">
             <div>
-              <h2>Historical Distribution</h2>
+              <h2>Distribucion historica</h2>
               <p>
-                The simulation model samples from the historical monthly return distribution
-                shown below.
+                La simulacion parte de la distribucion historica de rendimientos mensuales mostrada aqui.
               </p>
             </div>
             {dataset ? (
               <a className="source-link" href={dataset.sourceUrl} target="_blank" rel="noreferrer">
-                Source data
+                Ver fuente de datos
               </a>
             ) : null}
           </div>
@@ -308,30 +323,32 @@ function App() {
             <>
               <div className="report-grid">
                 <div className="metric-card">
-                  <span>Annualized return</span>
+                  <span>Rentabilidad anualizada</span>
                   <strong>{formatPercent(dataset.distributionStats.geometricAnnualReturn)}</strong>
                 </div>
                 <div className="metric-card">
-                  <span>Annualized volatility</span>
+                  <span>Volatilidad anualizada</span>
                   <strong>{formatPercent(dataset.distributionStats.annualizedVolatility)}</strong>
                 </div>
                 <div className="metric-card">
-                  <span>Median month</span>
+                  <span>Mes mediano</span>
                   <strong>{formatSignedPercent(dataset.distributionStats.median)}</strong>
                 </div>
                 <div className="metric-card">
-                  <span>Skew</span>
+                  <span>Sesgo</span>
                   <strong>{dataset.distributionStats.skewness.toFixed(2)}</strong>
                 </div>
               </div>
 
               <div className="chart-panel section-block">
-                <h3>Monthly Return Histogram</h3>
+                <h3>Histograma de rendimientos mensuales</h3>
                 <p className="note-text">{describeSkew(dataset.distributionStats.skewness)}</p>
                 <HistogramChart
                   bins={historicalHistogram}
                   valueFormatter={formatSignedPercent}
                   valueKind="percent"
+                  xAxisLabel="Rango de rendimiento mensual"
+                  yAxisLabel="Probabilidad historica"
                 />
               </div>
 
@@ -349,9 +366,9 @@ function App() {
         <section className="section-block">
           <div className="section-header">
             <div>
-              <h2>Simulation Report</h2>
+              <h2>Informe final</h2>
               <p>
-                Percentiles, probability bands, and a few sample paths for the current input set.
+                Percentiles, probabilidades de objetivo y trayectorias estimadas para la configuracion actual.
               </p>
             </div>
           </div>
@@ -360,64 +377,73 @@ function App() {
             <>
               <div className="report-grid">
                 <div className="metric-card">
-                  <span>Expected final value</span>
+                  <span>Valor final esperado</span>
                   <strong>{formatCurrency(simulationResult.summary.meanFinalValue)}</strong>
                 </div>
                 <div className="metric-card">
-                  <span>Median final value</span>
+                  <span>Valor final mediano</span>
                   <strong>{formatCurrency(simulationResult.summary.medianFinalValue)}</strong>
                 </div>
                 <div className="metric-card">
-                  <span>Total invested</span>
+                  <span>Total aportado</span>
                   <strong>{formatCurrency(simulationResult.summary.totalContributions)}</strong>
                 </div>
                 <div className="metric-card">
-                  <span>Average profit</span>
+                  <span>Beneficio medio</span>
                   <strong>{formatCurrency(simulationResult.summary.averageProfit)}</strong>
                 </div>
               </div>
 
               <div className="chart-grid section-block">
                 <div className="chart-panel">
-                  <h3>Final Value Distribution</h3>
+                  <h3>Distribucion del valor final</h3>
                   <p className="note-text">
-                    The histogram shows how often each end-value range appears across all runs.
+                    Este histograma muestra la frecuencia con la que aparece cada rango de valor final.
                   </p>
-                  <HistogramChart bins={resultHistogram} valueKind="currency" />
+                  <HistogramChart
+                    bins={resultHistogram}
+                    valueKind="currency"
+                    xAxisLabel="Valor final de la cartera"
+                    yAxisLabel="Probabilidad simulada"
+                  />
                 </div>
 
                 <div className="chart-panel">
-                  <h3>Sample Portfolio Paths</h3>
+                  <h3>Trayectorias de cartera de ejemplo</h3>
                   <p className="note-text">
-                    A small subset of simulated paths is shown to illustrate the possible journey.
+                    Se muestran las primeras {formatCount(inputs.visiblePathCount)} trayectorias simuladas para visualizar la evolucion posible.
                   </p>
-                  <PathChart samplePaths={simulationResult.samplePaths} years={inputs.years} />
+                  <PathChart
+                    samplePaths={simulationResult.samplePaths}
+                    years={inputs.years}
+                    visiblePathCount={inputs.visiblePathCount}
+                  />
                 </div>
               </div>
 
               <div className="chart-grid section-block">
                 <div className="table-card">
-                  <h3>Percentile Table</h3>
+                  <h3>Tabla de percentiles</h3>
                   <table className="table-layout">
                     <tbody>
                       <tr>
-                        <td>10th percentile</td>
+                        <td>Percentil 10</td>
                         <td>{formatCurrency(simulationResult.summary.percentile10)}</td>
                       </tr>
                       <tr>
-                        <td>25th percentile</td>
+                        <td>Percentil 25</td>
                         <td>{formatCurrency(simulationResult.summary.percentile25)}</td>
                       </tr>
                       <tr>
-                        <td>50th percentile</td>
+                        <td>Percentil 50</td>
                         <td>{formatCurrency(simulationResult.summary.percentile50)}</td>
                       </tr>
                       <tr>
-                        <td>75th percentile</td>
+                        <td>Percentil 75</td>
                         <td>{formatCurrency(simulationResult.summary.percentile75)}</td>
                       </tr>
                       <tr>
-                        <td>90th percentile</td>
+                        <td>Percentil 90</td>
                         <td>{formatCurrency(simulationResult.summary.percentile90)}</td>
                       </tr>
                     </tbody>
@@ -426,31 +452,31 @@ function App() {
 
                 <div className="insight-grid">
                   <div className="insight-card">
-                    <h3>Target hit rate</h3>
+                    <h3>Probabilidad de alcanzar el objetivo</h3>
                     <p className="note-text">
-                      Probability of ending above your selected target amount.
+                      Probabilidad de terminar por encima del objetivo final que hayas marcado.
                     </p>
                     <span className="insight-value">
                       {simulationResult.summary.probabilityAboveTarget === null
-                        ? 'N/A'
+                        ? 'N/D'
                         : formatPercent(simulationResult.summary.probabilityAboveTarget)}
                     </span>
                   </div>
                   <div className="insight-card">
-                    <h3>Profit goal rate</h3>
+                    <h3>Probabilidad de lograr el beneficio deseado</h3>
                     <p className="note-text">
-                      Probability of earning at least your selected profit target.
+                      Probabilidad de ganar al menos el beneficio objetivo sobre lo aportado.
                     </p>
                     <span className="insight-value">
                       {simulationResult.summary.probabilityAboveProfitGoal === null
-                        ? 'N/A'
+                        ? 'N/D'
                         : formatPercent(simulationResult.summary.probabilityAboveProfitGoal)}
                     </span>
                   </div>
                   <div className="insight-card">
-                    <h3>90% confidence floor</h3>
+                    <h3>Suelo con 90% de confianza</h3>
                     <p className="note-text">
-                      With 90% success probability, the portfolio ends at least here.
+                      Con un 90% de exito, la cartera terminaria al menos en este nivel.
                     </p>
                     <span className="insight-value">
                       {formatCurrency(simulationResult.summary.confidenceFloor90)}
@@ -461,9 +487,9 @@ function App() {
             </>
           ) : (
             <div className="loading-card">
-              <h3>Waiting for a simulation run</h3>
+              <h3>Esperando una simulacion</h3>
               <p className="note-text">
-                The report will appear here once you run the model with your chosen inputs.
+                El informe aparecera aqui cuando ejecutes la simulacion con tus parametros.
               </p>
             </div>
           )}

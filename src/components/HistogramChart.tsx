@@ -1,15 +1,18 @@
 import type { HistogramBin } from '../types'
-import { formatCompactCurrency, formatSignedPercent } from '../lib/format'
+import { formatCompactCurrency, formatPercent, formatSignedPercent } from '../lib/format'
 
 interface HistogramChartProps {
   bins: HistogramBin[]
   valueFormatter?: (value: number) => string
   valueKind?: 'currency' | 'percent'
+  xAxisLabel: string
+  yAxisLabel: string
 }
 
-const WIDTH = 680
-const HEIGHT = 240
-const PADDING = { top: 16, right: 12, bottom: 34, left: 12 }
+const WIDTH = 760
+const HEIGHT = 320
+const PADDING = { top: 22, right: 18, bottom: 60, left: 78 }
+const Y_TICK_COUNT = 5
 
 function defaultFormatter(value: number, valueKind: 'currency' | 'percent'): string {
   if (valueKind === 'currency') {
@@ -23,9 +26,11 @@ export function HistogramChart({
   bins,
   valueFormatter,
   valueKind = 'currency',
+  xAxisLabel,
+  yAxisLabel,
 }: HistogramChartProps) {
   if (bins.length === 0) {
-    return <div className="chart-empty">No data available.</div>
+    return <div className="chart-empty">No hay datos disponibles.</div>
   }
 
   const chartHeight = HEIGHT - PADDING.top - PADDING.bottom
@@ -33,11 +38,33 @@ export function HistogramChart({
   const maxProbability = Math.max(...bins.map((bin) => bin.probability), 0.01)
   const barWidth = chartWidth / bins.length
   const formatValue = valueFormatter ?? ((value: number) => defaultFormatter(value, valueKind))
+  const yTicks = Array.from({ length: Y_TICK_COUNT }, (_, index) => {
+    const ratio = index / (Y_TICK_COUNT - 1)
+    return maxProbability * (1 - ratio)
+  })
 
   return (
     <div className="chart-shell">
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="chart-svg" role="img">
-        <title>Histogram chart</title>
+        <title>Histograma</title>
+        {yTicks.map((tick) => {
+          const y = PADDING.top + (1 - tick / maxProbability) * chartHeight
+          return (
+            <g key={tick}>
+              <line
+                x1={PADDING.left}
+                x2={WIDTH - PADDING.right}
+                y1={y}
+                y2={y}
+                className="chart-gridline"
+              />
+              <text x={PADDING.left - 10} y={y + 4} textAnchor="end" className="chart-label">
+                {formatPercent(tick)}
+              </text>
+            </g>
+          )
+        })}
+
         {bins.map((bin, index) => {
           const barHeight = (bin.probability / maxProbability) * chartHeight
           const x = PADDING.left + index * barWidth
@@ -54,11 +81,12 @@ export function HistogramChart({
                 className="chart-bar"
               />
               <title>
-                {`${formatValue(bin.start)} to ${formatValue(bin.end)}: ${(bin.probability * 100).toFixed(1)}%`}
+                {`${formatValue(bin.start)} a ${formatValue(bin.end)}: ${formatPercent(bin.probability)}`}
               </title>
             </g>
           )
         })}
+
         <line
           x1={PADDING.left}
           x2={WIDTH - PADDING.right}
@@ -66,16 +94,41 @@ export function HistogramChart({
           y2={HEIGHT - PADDING.bottom}
           className="chart-axis"
         />
-        <text x={PADDING.left} y={HEIGHT - 10} className="chart-label">
+        <line
+          x1={PADDING.left}
+          x2={PADDING.left}
+          y1={PADDING.top}
+          y2={HEIGHT - PADDING.bottom}
+          className="chart-axis"
+        />
+
+        <text x={PADDING.left} y={HEIGHT - 28} className="chart-label">
           {formatValue(bins[0].start)}
         </text>
         <text
+          x={PADDING.left + chartWidth / 2}
+          y={HEIGHT - 16}
+          textAnchor="middle"
+          className="chart-axis-title"
+        >
+          {xAxisLabel}
+        </text>
+        <text
           x={WIDTH - PADDING.right}
-          y={HEIGHT - 10}
+          y={HEIGHT - 28}
           textAnchor="end"
           className="chart-label"
         >
           {formatValue(bins[bins.length - 1].end)}
+        </text>
+        <text
+          x={24}
+          y={PADDING.top + chartHeight / 2}
+          textAnchor="middle"
+          transform={`rotate(-90 24 ${PADDING.top + chartHeight / 2})`}
+          className="chart-axis-title"
+        >
+          {yAxisLabel}
         </text>
       </svg>
     </div>

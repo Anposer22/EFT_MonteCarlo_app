@@ -16,7 +16,9 @@
 .hero-panel,
 .report-grid,
 .inputs-grid,
-.notes-list {
+.notes-list,
+.insight-grid,
+.chart-grid {
   display: grid;
   gap: 18px;
 }
@@ -154,6 +156,10 @@
   background: rgba(255, 255, 255, 0.88);
 }
 
+.input-card:nth-child(7) {
+  grid-column: span 1;
+}
+
 .actions-row {
   display: flex;
   align-items: center;
@@ -192,9 +198,7 @@
 
 .chart-grid,
 .insight-grid {
-  display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
 }
 
 .insight-grid {
@@ -212,17 +216,34 @@
 }
 
 .chart-bar {
-  fill: rgba(238, 155, 0, 0.8);
+  fill: rgba(10, 147, 150, 0.78);
+  stroke: rgba(0, 95, 115, 0.18);
+  stroke-width: 1;
 }
 
 .chart-axis {
-  stroke: rgba(100, 84, 66, 0.25);
-  stroke-width: 1.5;
+  stroke: rgba(70, 60, 46, 0.55);
+  stroke-width: 1.6;
+}
+
+.chart-gridline {
+  stroke: rgba(100, 84, 66, 0.14);
+  stroke-width: 1;
+}
+
+.chart-gridline-vertical {
+  stroke-dasharray: 3 5;
 }
 
 .chart-empty {
   padding: 42px 0;
   color: var(--muted);
+}
+
+.chart-axis-title {
+  fill: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .table-layout {

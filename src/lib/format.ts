@@ -1,22 +1,22 @@
-const currencyFormatter = new Intl.NumberFormat(undefined, {
+const currencyFormatter = new Intl.NumberFormat('es-ES', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'EUR',
   maximumFractionDigits: 0,
 })
 
-const compactCurrencyFormatter = new Intl.NumberFormat(undefined, {
+const compactCurrencyFormatter = new Intl.NumberFormat('es-ES', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'EUR',
   notation: 'compact',
   maximumFractionDigits: 1,
 })
 
-const percentFormatter = new Intl.NumberFormat(undefined, {
+const percentFormatter = new Intl.NumberFormat('es-ES', {
   style: 'percent',
   maximumFractionDigits: 1,
 })
 
-const countFormatter = new Intl.NumberFormat(undefined, {
+const countFormatter = new Intl.NumberFormat('es-ES', {
   maximumFractionDigits: 0,
 })
 
